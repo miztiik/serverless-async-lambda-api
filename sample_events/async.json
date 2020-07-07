@@ -1,0 +1,17 @@
+{
+  "message": "Received Event! \"\"",
+  "stage": "miztiik",
+  "request_id": "ae1edba5-4a7a-4831-8a68-2fb92b24af7b",
+  "resource_path": "/square/{number}",
+  "http_method": "GET",
+  "source_ip": "85.144.205.34",
+  "user-agent": "curl/7.54.0",
+  "accept": "*/*",
+  "Host": "7z5waloht5.execute-api.us-east-1.amazonaws.com",
+  "invocationtype": "Event",
+  "User-Agent": "curl/7.54.0",
+  "X-Amzn-Trace-Id": "Root=1-5f04cbc7-55c16184d810d8376f5bd738",
+  "X-Forwarded-For": "85.144.205.34",
+  "X-Forwarded-Port": "443",
+  "X-Forwarded-Proto": "https"
+}
