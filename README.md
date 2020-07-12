@@ -4,11 +4,11 @@ A common architectural pattern is to loosely couple microservices is to expose a
 
 For example, if a user-facing API needs to perform a lot of time-consuming processing(from a few seconds to a minute), Your user has to wait for process to complete, which can lead to bad user experience.(_Who likes to wait anyway?_)
 
-![Miztiik Synchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_synchronous_00.png)
+![Miztiik Synchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_synchronous.png)
 
 Sometimes, You dont have to process and return the ressponse immediately. It is good enough to inform the user that the message had been received and will be processed later. In the previous example, We can store the message in a queue or a topic and return the reponse immediately to the user. We can process the messages in the background without making the user to wait. For example for an asynchronous function is video encoding or image processing process, You can respond back informing the user that the processing had begun.
 
-![Miztiik Asynchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_asynchronous_00.png)
+![Miztiik Asynchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_asynchronous.png)
 
 AWS Lambda functions can either be invoked synchronously or asynchronously. Functions invoked synchronously and asynchronously are handled in different ways when they fail, which can cause some unexpected side effects in your program logic.
 
