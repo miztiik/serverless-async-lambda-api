@@ -49,7 +49,7 @@ def lambda_handler(event, context):
 
     s = random.randint(13, 81)
 
-    _sleep_for(1)
+    _sleep_for(3)
 
     # Get Path Parameter
     if "number" in event:
@@ -61,7 +61,6 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "square": s
     }
-
-    logger.info(f"{msg}")
+    logger.info(f"response_message:{msg}")
 
     return msg

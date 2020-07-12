@@ -1,14 +1,17 @@
 from aws_cdk import aws_apigateway as _apigw
+from aws_cdk import aws_lambda_destinations as _lambda_dest
 from aws_cdk import aws_lambda as _lambda
 from aws_cdk import aws_logs as _logs
+from aws_cdk import aws_sqs as _sqs
 from aws_cdk import core
 
 import os
 import json
 
 
-class global_args:
-    """"
+# class global_args:
+class GlobalArgs:
+    """
     Helper to define global statics
     """
 
@@ -31,6 +34,13 @@ class ApiGwLambdaStack(core.Stack):
     ) -> None:
         super().__init__(scope, id, **kwargs)
 
+        # Create Lambda Destination Queue
+        async_dest_queue = _sqs.Queue(
+            self,
+            "Queue",
+            queue_name="async_get_square_fn_dest_queue"
+        )
+
         # Create Serverless Event Processor using Lambda):
         # Read Lambda Code):
         try:
@@ -49,6 +59,8 @@ class ApiGwLambdaStack(core.Stack):
             code=_lambda.InlineCode(get_square_fn_code),
             timeout=core.Duration.seconds(15),
             reserved_concurrent_executions=1,
+            on_success=_lambda_dest.SqsDestination(async_dest_queue),
+            on_failure=_lambda_dest.SqsDestination(async_dest_queue),
             environment={
                 "LOG_LEVEL": "DEBUG",
                 "Environment": "Production",
@@ -62,7 +74,9 @@ class ApiGwLambdaStack(core.Stack):
             alias_name="MystiqueAutomation",
             version=get_square_fn_version
         )
-        ######
+
+        # Add Permissions to lambda to write messags to queue
+        async_dest_queue.grant_send_messages(get_square_fn)
 
         # Create Custom Loggroup
         # /aws/lambda/function-name
@@ -103,28 +117,7 @@ class ApiGwLambdaStack(core.Stack):
         # https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
         # https://aws.amazon.com/premiumsupport/knowledge-center/custom-headers-api-gateway-lambda/
         req_template = f'{{"number": "$input.params("number")"}}'
-        """
-        resp_template ='''
-            {
-                "message": "Received Event! $util.escapeJavaScript($input.json('$.square'))",
-                "stage": "$context.stage",
-                "request_id": "$context.requestId",
-                "resource_path": "$context.resourcePath,
-                "http_method": "$context.httpMethod",
-                "source_ip": "$context.identity.sourceIp",
-                "user-agent": "$context.identity.userAgent",
-                "headers": {
-                    #foreach($param in $input.params().header.keySet())
-                    "$param": "$util.escapeJavaScript($input.params().header.get($param))"
-                    #if($param=="InvocationType" && $util.escapeJavaScript($input.params().header.get($param)) == "Event")
-                    "is_async":True
-                    #end
-                    #if($foreach.hasNext),#end
-                    #end
-                }
-            }
-            '''
-        """
+
         # We are going to loop through the headers. Find the key:value for asynchrony i.e "InvocationType:Event"
         # If the headers are found, set is_async to true
         # If not found, return the response from lambda
@@ -197,5 +190,5 @@ class ApiGwLambdaStack(core.Stack):
             self,
             "GetSquareApiUrl",
             value=f"{get_square.url}",
-            description="Use a browser to access this url"
+            description="Use a browser to access this url. Change {number} to any value between 1 and 100."
         )
