@@ -4,7 +4,7 @@ A common architectural pattern is to loosely couple microservices is to expose a
 
 For example, if a user-facing API needs to perform a lot of time-consuming processing(from a few seconds to a minute), Your user has to wait for process to complete, which can lead to bad user experience.(_Who likes to wait anyway?_)
 
-![Miztiik Synchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_synchronous.png)
+![Miztiik Asynchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_synchronous.png)
 
 Sometimes, You dont have to process and return the ressponse immediately. It is good enough to inform the user that the message had been received and will be processed later. In the previous example, We can store the message in a queue or a topic and return the reponse immediately to the user. We can process the messages in the background without making the user to wait. For example for an asynchronous function is video encoding or image processing process, You can respond back informing the user that the processing had begun.
 
@@ -88,63 +88,93 @@ In this article, we will build an messaging architecture to demonstrate synchron
 
 1. ## 🔬 Testing the solution
 
-   The _Outputs_ section of the `serverless-async-lambda-api` stack has the required information on the urls
+   The _Outputs_ section of the `serverless-async-lambda-api` stack has the required information on the urls.
 
-   ```bash
-   API_ENDPOINT_URL="https://7z5waloht5.execute-api.us-east-1.amazonaws.com/miztiik/square/2"
 
-   # Synchromous request
-   curl -X GET ${API_ENDPOINT_URL}
-   ```
+    ### Synchronous Request
 
-   Expected Output,
+    You can use the url in the browser or cli or tool like postman,
 
-   ```json
-   {
-     "api_stage": "miztiik",
-     "api_request_id": "28e20dd-8f54-4cad-ae6d-4b1b2129bc77",
-     "api_resource_path": "/square/{number}",
-     "http_method": "GET",
-     "source_ip": "13.3.81.39",
-     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4103.116 Safari/537.36",
-     "synchronous_invocation": "true",
-     "square_of_your_number_is": 4
-   }
-   ```
+    ```bash
+    API_ENDPOINT_URL="https://7z5waloht5.execute-api.us-east-1.amazonaws.com/miztiik/square/2"
 
-   You can notice the function takes the input `{number}` 2 in this case and return an _synchronous_ response. I have added key _synchronous_invocation_ along with the _square_. Now lets try and do an asynchronous request. For this we need to add an custom header to the request<sup>[1]</sup>. We can use `curl` to do that,
+    # Synchromous request
+    curl -X GET ${API_ENDPOINT_URL}
+    ```
 
-   ```bash
-   # Asynchromous request - by setting header InvocationType to Event
-   curl -X GET ${API_ENDPOINT_URL} -H "InvocationType:Event"
-   ```
+    Expected Output,
 
-   Expected Output,
+    ```json
+    {
+      "api_stage": "miztiik",
+      "api_request_id": "28e20dd-8f54-4cad-ae6d-4b1b2129bc77",
+      "api_resource_path": "/square/{number}",
+      "http_method": "GET",
+      "source_ip": "13.3.81.39",
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4103.116 Safari/537.36",
+      "synchronous_invocation": "true",
+      "square_of_your_number_is": 4
+    }
+    ```
+    ![Miztiik Synchronous Messaging with AWS Lambda](images/miztiik_postman_lambda_synchronous_response.png)
 
-   ```json
-   {
-     "api_stage": "miztiik",
-     "api_request_id": "c72ce06-031d-4409-808a-ed56c74eb746",
-     "api_resource_path": "/square/{number}",
-     "http_method": "GET",
-     "source_ip": "13.3.81.39",
-     "user-agent": "curl/7.54.0",
-     "asynchronous_invocation": "true",
-     "message": "Event received. Check queue/logs for status"
-   }
-   ```
+    You can notice the function takes the input `{number}` 2 in this case and return an _synchronous_ response. I have added key _synchronous_invocation_ along with the _square_.
 
-   If you want to check the output, you can retreive the message from SQS and inspect the message body for the payload.
+    The postman output will show you the response time as well,
 
-   ```bash
-   # Get SQS Messages
-   DEST_QUEUE_NAME="async_get_square_fn_dest_queue"
-   QUEUE_URL=$(aws sqs create-queue --queue-name ${DEST_QUEUE_NAME} | jq -r '.QueueUrl')
-   aws sqs receive-message --queue-url ${QUEUE_URL}
-   aws sqs receive-message --queue-url ${QUEUE_URL} | jq -r '.Messages.Body'
-   ```
+    ### Asynchronous Request
 
-   You can check the logs in cloudwatch for more information or increase the logging level of the lambda functions by changing the environment variable from `INFO` to `DEBUG`
+     Now lets try and do an asynchronous request. For this we need to add an custom header to the request<sup>[1]</sup>. We can use `curl` to do that.
+
+    ```bash
+    # Asynchromous request - by setting header InvocationType to Event
+    curl -X GET ${API_ENDPOINT_URL} -H "InvocationType:Event"
+    ```
+
+    Expected Output,
+
+    ```json
+    {
+      "api_stage": "miztiik",
+      "api_request_id": "c72ce06-031d-4409-808a-ed56c74eb746",
+      "api_resource_path": "/square/{number}",
+      "http_method": "GET",
+      "source_ip": "13.3.81.39",
+      "user-agent": "curl/7.54.0",
+      "asynchronous_invocation": "true",
+      "message": "Event received. Check queue/logs for status"
+    }
+    ```
+
+    ![Miztiik Asynchronous Messaging with AWS Lambda](images/miztiik_postman_lambda_asynchronous_response.png)
+
+    For the async response, the API GW receives the event and returns a templated response to requestor, while it invokes the Lambda function in the back-end.
+
+    If you want to check the output, you can retreive the message from SQS and inspect the message body for the payload.
+
+    ```bash
+    # Get SQS Messages
+    DEST_QUEUE_NAME="async_get_square_fn_dest_queue"
+    QUEUE_URL=$(aws sqs create-queue --queue-name ${DEST_QUEUE_NAME} | jq -r '.QueueUrl')
+    aws sqs receive-message --queue-url ${QUEUE_URL}
+    ```
+
+    Expected Output,
+
+    ```json
+    {
+      "Messages": [
+        {
+          "MessageId": "48ee86aba........6-79947b2649896",
+          "ReceiptHandle": "AQEpB........nccPpXU8tzQ+u8=",
+          "MD5OfBody": "a085a05da........cc09ca5dsad1874",
+          "Body": "{\"version\":\"1.0\",\"timestamp\":\"2020-17-12T21:22:30.275Z\",\"requestContext\":{\"requestId\":\"fae2d6a5........c24ce61ddd3f\",\"functionArn\":\"arn:aws:lambda:us-east-1:831303390:function:get_square_fn:$LATEST\",\"condition\":\"Success\",\"approximateInvokeCount\":1},\"requestPayload\":{\"number\": \"2\"},\"responseContext\":{\"statusCode\":200,\"executedVersion\":\"$LATEST\"},\"responsePayload\":{\"statusCode\": 200, \"square\": 4}}"
+        }
+      ]
+    }
+    ```
+
+    You can check the logs in cloudwatch for more information or increase the logging level of the lambda functions by changing the environment variable from `INFO` to `DEBUG`
 
 1. ## 🧹 CleanUp
 
