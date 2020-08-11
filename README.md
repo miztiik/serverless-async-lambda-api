@@ -4,7 +4,7 @@ A common architectural pattern is to loosely couple microservices is to expose a
 
 For example, if a user-facing API needs to perform a lot of time-consuming processing(from a few seconds to a minute), Your user has to wait for process to complete, which can lead to bad user experience.(_Who likes to wait anyway?_)
 
-![Miztiik Asynchronous Messaging with AWS Lambda](images/miztiik_messaging_pattern_synchronous.png)
+![Miztiik Asynchronous Messaging with AWS Lambda](images/miztiik_messaging.png)
 
 Sometimes, You dont have to process and return the ressponse immediately. It is good enough to inform the user that the message had been received and will be processed later. In the previous example, We can store the message in a queue or a topic and return the reponse immediately to the user. We can process the messages in the background without making the user to wait. For example for an asynchronous function is video encoding or image processing process, You can respond back informing the user that the processing had begun.
 
@@ -186,7 +186,7 @@ In this article, we will build an messaging architecture to demonstrate synchron
 
    ```bash
    # Delete from cdk
-   cdk destroy cognito-identity-provider
+   cdk destroy
 
    # Follow any on-screen prompts
 
@@ -232,7 +232,7 @@ Thank you for your interest in contributing to our project. Whether it's a bug r
 [101]: https://www.udemy.com/course/aws-cloud-security-proactive-way/?referralCode=71DC542AD4481309A441
 [102]: https://www.udemy.com/course/aws-cloud-development-kit-from-beginner-to-professional/?referralCode=E15D7FB64E417C547579
 [103]: https://www.udemy.com/course/aws-cloudformation-basics?referralCode=93AD3B1530BC871093D6
-[200]: https://github.com/miztiik/cfn-challenges/issues
+[200]: https://github.com/miztiik/serverless-async-lambda-api/issues
 [899]: https://www.udemy.com/user/n-kumar/
 [900]: https://ko-fi.com/miztiik
 [901]: https://ko-fi.com/Q5Q41QDGK

@@ -9,7 +9,6 @@ import os
 import json
 
 
-# class global_args:
 class GlobalArgs:
     """
     Helper to define global statics
@@ -30,6 +29,7 @@ class ApiGwLambdaStack(core.Stack):
         scope: core.Construct,
         id: str,
         back_end_api_name: str,
+        stack_log_level: str,
         **kwargs
     ) -> None:
         super().__init__(scope, id, **kwargs)
@@ -62,7 +62,7 @@ class ApiGwLambdaStack(core.Stack):
             on_success=_lambda_dest.SqsDestination(async_dest_queue),
             on_failure=_lambda_dest.SqsDestination(async_dest_queue),
             environment={
-                "LOG_LEVEL": "DEBUG",
+                "LOG_LEVEL": f"{stack_log_level}",
                 "Environment": "Production",
                 "ANDON_CORD_PULLED": "False"
             }

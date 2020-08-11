@@ -32,12 +32,10 @@ post_build: ## Show differences
 	cdk diff
 
 deploy: ## Deploy ALL stack
-	cdk deploy static-site-back-end-stack --profile ${AWS_PROFILE} --require-approval never
-	cdk deploy static-site-front-end-stack --profile ${AWS_PROFILE} --require-approval never
+	cdk deploy serverless-async-lambda-api --profile ${AWS_PROFILE} --require-approval never
 
 destroy: ## Delete Stack without confirmation
-	cdk destroy static-site-back-end-stack --profile ${AWS_PROFILE} --force
-	cdk destroy static-site-front-end-stack --profile ${AWS_PROFILE} --force
+	cdk destroy serverless-async-lambda-api --profile ${AWS_PROFILE} --force
 
 deps: deps_python ## Install dependancies
 

@@ -14,6 +14,7 @@ api_back_end = ApiGwLambdaStack(
     app,
     "serverless-async-lambda-api",
     back_end_api_name="back_end_01_api",
+    stack_log_level="INFO",
     description="The API GW and Lambda Backend Stack"
 )
 
